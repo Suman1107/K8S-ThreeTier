@@ -1,4 +1,4 @@
-#this is the deployment yaml file for wordpress
+#this is the deployment yaml file for wordpress--
 
 apiVersion: apps/v1
 kind: Deployment
