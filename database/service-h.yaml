@@ -1,0 +1,15 @@
+#headless service schema: podname.headless-servicename.namespace.svc.cluster.local
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: headless-service
+  name: mysql-h
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+    tier: database
+  clusterIP: None
