@@ -1,0 +1,65 @@
+#this is the deployment yaml file for wordpress
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  replicas : 1
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: frontend
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: frontend
+    spec:
+      containers:
+      - image: wordpress:4.8-apache
+        name: wordpress
+        args:
+          - /bin/sh
+          - -c
+          - mkdir /tmp/heathy && cd /tmp/heathy && echo "Probes ran successfuly at - $(date)" > probes.txt;
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: mysql
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-auth
+              key: password
+        ports:
+        - containerPort: 80
+          name: wordpress
+        volumeMounts:
+        - name: wordpress-persistent-storage
+          mountPath: /var/www/html
+        readinessProbe:
+          exec:
+              command:
+              - cat
+              - /tmp/heathy/probes.txt
+            initialDelaySeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/heathy/probes.txt
+          initialDelaySeconds: 5	
+          periodSeconds: 5
+        tolerations:
+        - key: "tolerate-pod"
+          operator: "Equal" 
+          value: "wordpress"
+          effect: "NoSchedule"
+      volumes:
+      - name: wordpress-persistent-storage
+        persistentVolumeClaim:
+          claimName: wp-pv-claim
